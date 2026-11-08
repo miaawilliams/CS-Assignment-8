@@ -1,0 +1,151 @@
+Section 1: Performance Measurements
+
+Comparing row-major vs column-major matrix traversal
+
+--- Matrix Size: 1000 x 1000 ---
+Row-major:    1.00 ms (sum: 49500000)
+Column-major: 4.00 ms (sum: 49500000)
+Ratio (col/row): 4.00x
+
+--- Matrix Size: 2000 x 2000 ---
+Row-major:    6.00 ms (sum: 198000000)
+Column-major: 22.00 ms (sum: 198000000)
+Ratio (col/row): 3.67x
+
+--- Matrix Size: 4000 x 4000 ---
+Row-major:    21.00 ms (sum: 792000000)
+Column-major: 71.00 ms (sum: 792000000)
+Ratio (col/row): 3.38x
+
+--- Matrix Size: 8000 x 8000 ---
+Row-major:    99.00 ms (sum: 3168000000)
+Column-major: 316.00 ms (sum: 3168000000)
+Ratio (col/row): 3.19x
+
+==================
+Tests complete
+
+
+
+Section 2: Optimization Level Comparison
+
+Comparing row-major vs column-major matrix traversal
+
+--- Matrix Size: 1000 x 1000 ---
+Row-major:    1.00 ms (sum: 49500000)
+Column-major: 5.00 ms (sum: 49500000)
+Ratio (col/row): 5.00x
+
+--- Matrix Size: 2000 x 2000 ---
+Row-major:    5.00 ms (sum: 198000000)
+Column-major: 18.00 ms (sum: 198000000)
+Ratio (col/row): 3.60x
+
+--- Matrix Size: 4000 x 4000 ---
+Row-major:    18.00 ms (sum: 792000000)
+Column-major: 69.00 ms (sum: 792000000)
+Ratio (col/row): 3.83x
+
+--- Matrix Size: 8000 x 8000 ---
+Row-major:    79.00 ms (sum: 3168000000)
+Column-major: 316.00 ms (sum: 3168000000)
+Ratio (col/row): 4.00x
+
+==================
+Tests complete.
+PS C:\Users\MiaWilliams\CS-Assignment-8> gcc -O2 cache_lab.c -o cache_O2
+PS C:\Users\MiaWilliams\CS-Assignment-8>  ./cache_O2
+Cache Behavior Lab
+==================
+Comparing row-major vs column-major matrix traversal
+
+--- Matrix Size: 1000 x 1000 ---
+Row-major:    1.00 ms (sum: 49500000)
+Column-major: 0.00 ms (sum: 49500000)
+Ratio (col/row): 0.00x
+
+--- Matrix Size: 2000 x 2000 ---
+Row-major:    4.00 ms (sum: 198000000)
+Column-major: 13.00 ms (sum: 198000000)
+Ratio (col/row): 3.25x
+
+--- Matrix Size: 4000 x 4000 ---
+Row-major:    6.00 ms (sum: 792000000)
+Column-major: 53.00 ms (sum: 792000000)
+Ratio (col/row): 8.83x
+
+--- Matrix Size: 8000 x 8000 ---
+Row-major:    19.00 ms (sum: 3168000000)
+Column-major: 273.00 ms (sum: 3168000000)
+Ratio (col/row): 14.37x
+
+==================
+Tests complete.
+PS C:\Users\MiaWilliams\CS-Assignment-8> gcc -O3 cache_lab.c -o cache_O3
+PS C:\Users\MiaWilliams\CS-Assignment-8> ./cache_O3
+Cache Behavior Lab
+==================
+Comparing row-major vs column-major matrix traversal
+
+--- Matrix Size: 1000 x 1000 ---
+Row-major:    0.00 ms (sum: 49500000)
+Column-major: 1.00 ms (sum: 49500000)
+
+--- Matrix Size: 2000 x 2000 ---
+Row-major:    2.00 ms (sum: 198000000)
+Column-major: 1.00 ms (sum: 198000000)
+Ratio (col/row): 0.50x
+
+--- Matrix Size: 4000 x 4000 ---
+Row-major:    5.00 ms (sum: 792000000)
+Column-major: 55.00 ms (sum: 792000000)
+Ratio (col/row): 11.00x
+
+--- Matrix Size: 8000 x 8000 ---
+Row-major:    17.00 ms (sum: 3168000000)
+Column-major: 262.00 ms (sum: 3168000000)
+Ratio (col/row): 15.41x
+
+==================
+Tests complete.
+
+No, -O3 did not eliminate the performance gap between row-major and column-major. It took 15.41x
+longer for column-major.
+
+
+
+Section 3: Assembly Analysis
+
+The two functions generate different assembly, but it is not significant. The column_major function
+has more instructions than the row_majors function has. What is the most drastic difference between
+the two is the CPU cache behavior the the memory access patterns. Column_major is more prone to 
+more cache misses and slower overall performance.
+
+
+
+Section 4: Cache Behavior Explanation
+
+Row_major traversal outperforms colum-major traversal because of the way c stores 2D arrays in
+memory and how the cache is used by the CPU. The 2D arrays are stored in row_major order which means 
+all of the elements in the first row are next to each other in memory, and the second row, third row,
+etc. follow. When accessing the matrix[row][col] the elements on a row are stored in memory 
+consecutively. Row_major traversal uses this layout by processing each row from left to right before
+moving onto the next row. The allows the progam to access memory in the same order that elements
+are stored.
+
+During row_major traversal, when the CPU needs data from memory, it gets a block of nearby data (a cache line) instead of
+retrieving a single value. When the cache line is fetched by the CPU, it also brings neighboring 
+elements from the same row to the cache. When the program continues through the row, the 
+elements neighboring the data are already available to use, which helps the program use them faster
+without repeatedly going back to obtain more data. Column_major traversal moves down a column and
+jumps between the different rows which can cause the CPU to access different cache lines for each
+element. Because of this, a lot of the data might not be used until later when the CPU needs to 
+fetch another cache line. This causes more cache misses and increases the time to access the data.
+
+The compiler cannot fix this problem through optimization because it doesn't change the memory
+layout of a c array. It also can't rearrange the order of memory accesses without a chance of
+changing the program's behavior. However; compiler does have the capabilities to improve 
+instructions, reduce operations that aren't necessary, and can sometimes reorder calculations.
+But, it cannot take away the underlying disadvantagess that column_major faces while preserving
+how the function runs. Row_major is ultimately faster because it works with the way c is 
+organized and run. This makes it easier and faster to work with and uses CPU cache better.
